@@ -4,7 +4,20 @@ import math
 import numpy as np
 import scipy.sparse as sparse
 
-def create_matrix_B(n,alpha=3,beta=1):
+def create_matrix_B(n,alpha=6,beta=1):
+	"""
+	n = number of vertices in graph (number of members across all communities)
+
+	p = probability of edge between two vertices in the same community
+	q = probability of edge between two vertices in different communities
+	alpha = constant parameter for draw p
+	beta = constant parameter for draw q
+
+	g = vector containing true labels of community membership
+	A = adjacency matrix
+	B = 2A - (1 x 1^T - I)
+	"""
+
 	#define draw probabilities for intercommunity and intracommunity edges
 	p = alpha * math.log(n) / n
 	q = beta * math.log(n) / n
@@ -31,7 +44,7 @@ def create_matrix_B(n,alpha=3,beta=1):
 				
 	return B,g
 	
-n = 10
+n = 50
 B,g = create_matrix_B(n)
 
 #initialize psd matrix
@@ -45,7 +58,12 @@ constraints = [diag(X) == np.ones(n)]
 prob = Problem(obj, constraints)
 prob.solve(solver='SCS')
 
-
+#find leading eigenvector of solved X
 w,v = sparse.linalg.eigs(X.value, k=1)
-print "estimated g:", v
-print "actual g:",g
+
+#extract sign of each value in eigenvector
+estimated_labels = [x[0] for x in np.sign(v)]
+
+#print "estimated g:", estimated_labels
+#print "actual g:",g
+print "Exact recovery achieved: " + str(np.array_equal(g,estimated_labels))
