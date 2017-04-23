@@ -83,4 +83,4 @@ for i in range(len(g)):
 print comm_1,comm_2
 
 #exact recovery is achieved if one community consists of two of the true labels and the other community consists of only the third true label
-print "Exact recovery achieved: " + str(comm_1.intersection(comm_2)==set([]) and max(len(comm_1),len(comm_2))==2 and min(len(comm_1),len(comm_2))==1)
+print "Exact recovery achieved: " + str(comm_1.intersection(comm_2)==set([]) and min(len(comm_1),len(comm_2))==1)
