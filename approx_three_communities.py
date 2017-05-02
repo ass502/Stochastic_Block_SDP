@@ -4,12 +4,12 @@ requires knowing community labels in between the hierarchical applications - thi
 
 Instead, we know for these experiments that there are three equal-sized communities. 
 If you apply SBM once, you have two communities. Then you should apply SBM to the larger of the two, 
-to have three communities. To measure the quality of the splits, we can measure the network entropy
-according
-
+to have three communities. To measure the quality of the splits, we can measure the network entropy 
+according to the true labels.
 
 '''
-
+import os
+import argparse
 import cvxopt
 from cvxpy import *
 import math
@@ -18,6 +18,21 @@ import scipy.sparse as sparse
 import matplotlib.pyplot as plt
 import pickle
 import time
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--niter', type=int, default=100000, help='Number of experiments.')
+parser.add_argument('--vert_per_comm', type=int, default=15, help='Number of vertices per community.')
+parser.add_argument('--num_comm', type=int, default=3, help='Number of communities.')
+parser.add_argument('--outdir', type=str, default='./', help='Directory to write output files to.')
+parser.add_argument('--plotfile', type=str, default='entropies.jpg', help='Image path for histogram of entropies')
+parser.add_argument('--entropies_pickle', type=str, default='entropies.p', help='Network entropy for each experiment')
+parser.add_argument('--comms_pickle', type=str, default='', help='Comms for each experiments')
+args = parser.parse_args()
+
+try:
+    os.makedirs(args.outdir)
+except OSError:
+    pass
 
 def entropy(community_labels):
 
@@ -191,15 +206,19 @@ def test_hierarchy():
 	print 'Community 3: ', labels_3
 
 
-def simulate(n_iters, outpickle, outplot):
+def simulate(n_iters,m,k):
 
-	start_time = time.time()
+	'''
+	m is number of vertices per community
+	k is number of communities
+	'''
 
-	m = 15 #number of vertices in each community
-	k = 3 #number of communities
-	n = m*k #number of network vertices
+	n = m*k #network size
 
 	entropies = []
+	if args.comms_pickle:
+		comms = []
+
 	for it in range(n_iters):
 
 		if it%100==0:
@@ -231,19 +250,35 @@ def simulate(n_iters, outpickle, outplot):
 		#Compute and store entropy
 		entropies.append( network_entropy([labels_1, labels_2, labels_3]) )
 
+		#Store labels, maybe
+		if args.comms_pickle:
+			comms.append([labels_1, labels_2, labels_3])
+
 	#Pickle and plot results
-	with open(outpickle, 'wb') as out:
-		pickle.dump(np.sort(entropies), out)
+	with open(args.outdir+args.entropies_pickle, 'wb') as out:
+		pickle.dump(entropies, out)
 
+	#Pickle communities, maybe
+	if args.comms_pickle:
+			with open(args.outdir+args.comms_pickle, 'wb') as out:
+				pickle.dump(np.sort(entropies), out)
+
+	#Histogram of recoveries
 	plt.hist(entropies)
-	plt.savefig(outplot)
+	plt.savefig(args.outdir+args.plotfile)
 
-	print 'Time in minutes: ', (time.time()-start_time)/60.
 
 def main():
 
-	#test_hierarchy()
-	simulate(100000, '100k.p', 'results_100k.jpg')
+	start_time = time.time()
+	simulate(args.niter,args.vert_per_comm,args.num_comm)
+
+	with open(args.outdir+'params.txt', 'wb') as params_file:
+		params_file.write('niter='+str(args.niter)+'\n')
+		params_file.write('m='+str(args.vert_per_comm)+'\n')
+		params_file.write('k='+str(args.num_comm)+'\n')
+
+	print 'Time in minutes: ', (time.time()-start_time)/60.
 
 if __name__ == '__main__':
 	main()

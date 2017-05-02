@@ -1,0 +1,2 @@
+python approx_three_communities.py --niter=100000 --vert_per_comm=10 --num_comm=3 --outdir='./three_comm_network_30/'
+python approx_three_communities.py --niter=100000 --vert_per_comm=20 --num_comm=3 --outdir='./three_comm_network_60/'
