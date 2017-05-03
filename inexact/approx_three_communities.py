@@ -7,8 +7,10 @@ If you apply SBM once, you have two communities. Then you should apply SBM to th
 to have three communities. To measure the quality of the splits, we can measure the network entropy 
 according to the true labels.
 
+THIS IS THE BOTH THE ONE-VS-K AND BINARY APPROACH...
 '''
 import os
+import sys
 import argparse
 import cvxopt
 from cvxpy import *
@@ -84,8 +86,12 @@ def create_matrix_B(m,k,alpha=5,beta=1):
 	n = m*k
 
 	#define draw probabilities for intercommunity and intracommunity edges
+	'''
 	p = alpha * math.log(m) / m
 	q = beta * math.log(m) / m
+	'''
+	p = alpha * math.log(n) / n 
+	q = beta * math.log(n) / n
 
 	#create true label of communities
 	g = []
@@ -111,33 +117,21 @@ def create_matrix_B(m,k,alpha=5,beta=1):
 				
 	return B,g
 
-def create_second_B_matrix(B_orig, g_orig, comm):
+def create_second_B_matrix(B, g, comm):
 
 	'''Create a version of B and g which only includes the vertices in community comm'''
 
-	g = [ g_orig[vertex] for vertex in comm ]
-
-	len_comm = len(comm)
-	B = np.zeros([len_comm,len_comm])
-
-	for row in range(len_comm):
-		for col in range(row+1,len_comm):
-
-			#row and col refer to the new indexing for new B and g
-			#but to compute B[row,col], look at comm[row] and comm[col] which is index value in B_orig and g_orig and 
-			orig_row_idx = comm[row]
-			orig_col_idx = comm[col]
-			B[row,col] = B_orig[orig_row_idx,orig_col_idx]
-			B[col,row] = B[row,col]
-
-	return B, g
+	return B[comm][:,comm], g[comm]
 
 
 def solve_sdp(n,B,g):
 
+	#This doesn't apply here
+	'''
 	#if a subproblem only consists of one true community, it is solved
 	if len(set(g))==1:
 		return True
+	'''
 
 	#initialize psd matrix
 	X = Semidef(n)
@@ -175,7 +169,7 @@ def test_hierarchy():
 	n = m*k #number of network vertices
 
 	B1, g1 = create_matrix_B(m,k) #g1 is true community labels. B1 = 2A - (1-I) with A as random SBM graph
-
+	
 	temp_comm1, temp_comm2 = solve_sdp(n,B1,g1) 
 
 	#Figure out the bigger community to split again. If equal size, pick randomly.
@@ -261,7 +255,7 @@ def simulate(n_iters,m,k):
 	#Pickle communities, maybe
 	if args.comms_pickle:
 			with open(args.outdir+args.comms_pickle, 'wb') as out:
-				pickle.dump(np.sort(entropies), out)
+				pickle.dump(comms, out)
 
 	#Histogram of recoveries
 	plt.hist(entropies)
@@ -269,6 +263,8 @@ def simulate(n_iters,m,k):
 
 
 def main():
+
+	#test_hierarchy()
 
 	start_time = time.time()
 	simulate(args.niter,args.vert_per_comm,args.num_comm)
@@ -279,7 +275,7 @@ def main():
 		params_file.write('k='+str(args.num_comm)+'\n')
 
 	print 'Time in minutes: ', (time.time()-start_time)/60.
-
+	
 if __name__ == '__main__':
 	main()
 
