@@ -4,7 +4,7 @@ import math
 import numpy as np
 import scipy.sparse as sparse
 
-def create_matrix_B(n,alpha=6,beta=1):
+def create_matrix_B(n,alpha=9,beta=1):
 	"""
 	n = number of vertices in graph (number of members across all communities)
 
@@ -43,27 +43,40 @@ def create_matrix_B(n,alpha=6,beta=1):
 	B = 2*A - (np.ones([n,n]) - np.identity(n))
 				
 	return B,g
-	
-n = 50
-B,g = create_matrix_B(n)
 
-#initialize psd matrix
-X = Semidef(n)
+def run_iterations(n_iter,n,alpha,beta):
+	success_count = 0
+	for i in range(n_iter):
+		B,g = create_matrix_B(n,alpha,beta)
 
-obj = Maximize(trace(B*X))
+		#initialize psd matrix
+		X = Semidef(n)
 
-constraints = [diag(X) == np.ones(n)]
+		obj = Maximize(trace(B*X))
 
-# Form and solve problem.
-prob = Problem(obj, constraints)
-prob.solve(solver='SCS')
+		constraints = [diag(X) == np.ones(n)]
 
-#find leading eigenvector of solved X
-w,v = sparse.linalg.eigs(X.value, k=1)
+		# Form and solve problem.
+		prob = Problem(obj, constraints)
+		prob.solve(solver='SCS')
 
-#extract sign of each value in eigenvector
-estimated_labels = [x[0] for x in np.sign(v)]
+		#find leading eigenvector of solved X
+		w,v = sparse.linalg.eigs(X.value, k=1)
 
-#print "estimated g:", estimated_labels
-#print "actual g:",g
-print "Exact recovery achieved: " + str(np.array_equal(g,estimated_labels))
+		#extract sign of each value in eigenvector
+		estimated_labels = [x[0] for x in np.sign(v)]
+
+		#print "estimated g:", estimated_labels
+		#print "actual g:",g
+		#print "Exact recovery achieved: " + str(np.array_equal(g,estimated_labels))
+
+		success_count += 1 if np.array_equal(g,estimated_labels) else 0
+
+	return success_count*1.0/n_iter
+
+def main():
+    success_rate = run_iterations(50,100,6,1)
+    print success_rate
+
+if __name__ == "__main__":
+    main()
