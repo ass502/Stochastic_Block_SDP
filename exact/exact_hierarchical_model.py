@@ -24,8 +24,8 @@ def create_matrix_B(m,k,alpha=5,beta=1):
 	n = m*k
 
 	#define draw probabilities for intercommunity and intracommunity edges
-	p = alpha * math.log(m) / m
-	q = beta * math.log(m) / m
+	p = alpha * math.log(n) / n
+	q = beta * math.log(n) / n
 
 	#create true label of communities
 	g = []
@@ -97,10 +97,20 @@ def solve_sdp(n,B,g):
 	return solve_sdp(len(comm_1_members),B[comm_1_members][:,comm_1_members],g[comm_1_members]) and \
 		 solve_sdp(len(comm_2_members),B[comm_2_members][:,comm_2_members],g[comm_2_members]) 
 
+def run_iterations(n_iter,m,k,alpha,beta):
+	n = m*k
 
-m = 15
-k = 4
-n = m*k
-B,g = create_matrix_B(m,k)
+	success_count = 0
+	for i in range(n_iter):
+		B,g = create_matrix_B(m,k,alpha,beta)
 
-print solve_sdp(n,B,g)
+		success_count += 1 if solve_sdp(n,B,g) else 0
+
+	return success_count*1.0/n_iter
+
+def main():
+    success_rate = run_iterations(50,15,4,8,1)
+    print success_rate
+
+if __name__ == "__main__":
+    main()

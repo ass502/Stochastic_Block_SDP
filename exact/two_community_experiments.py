@@ -3,31 +3,44 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import pickle
+import sys
 
-n = 100
-n_iter = 50
-upper_bound = int(math.floor(n / math.log(n)))
-lower_bound = 0
+n = 250
+n_iter = 20
 
-"""n=20
-n_iter = 10
-upper_bound = 6
-lower_bound = 0"""
+#create range of values to try
+#generally use small values, with alpha > beta
+beta_values = np.arange(0,1.26,.06)
+alpha_values = np.arange(1.5,5.7,.2)
 
-results = np.zeros((upper_bound,upper_bound))
-for beta in range(lower_bound,upper_bound):
-	for alpha in range(beta+1,upper_bound+1):
-		success_rate = two_communities.run_iterations(n_iter,n,alpha,beta+0.1)
+#create matrix to store results of each experiment
+results = np.zeros((len(beta_values),len(alpha_values)))
 
-		results[beta,alpha-1] = success_rate
+for i,beta in enumerate(beta_values):
+	for j,alpha in enumerate(alpha_values):
+		success_rate = two_communities.run_iterations(n_iter,n,alpha,beta)
 
-pickle.dump(results, open( "experiment_output/2_communities_results.p", "wb" ))
+		results[i,j] = success_rate
+
+pickle.dump(results, open( "experiment_output/two_communities_250_verts_results.p", "wb" ))
 
 imgplot = plt.imshow(results,cmap='gray')
 axes = plt.gca()
-axes.set_xticklabels(range(lower_bound,upper_bound+1),ha='center')
+
 axes.set_ylabel('beta')
 axes.set_xlabel('alpha')
-axes.set_title('Two community results for '+str(n_iter)+' iterations')
+axes.set_title('Two community results for '+str(n)+' vertices')
 
-plt.savefig('experiment_output/two_communities.png')
+#create labels for x and y axis
+axes.yaxis.set_ticks(beta_values)
+axes.xaxis.set_ticks(alpha_values)
+axes.set_yticklabels(beta_values,ha='center')
+axes.set_xticklabels(alpha_values,ha='center')
+
+#draw boundary curve for sqrt(alpha) - sqrt(beta) = sqrt(k)
+x_vals = np.arange(np.sqrt(2),5.7,0.1)
+y_vals = np.power((np.sqrt(x_vals) - np.sqrt(2)),2)
+axes.autoscale(False)
+axes.plot(x_vals,y_vals,"r-")
+
+plt.savefig('experiment_output/two_communities_250_verts.png')
