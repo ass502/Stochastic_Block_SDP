@@ -17,7 +17,7 @@ a_values = np.arange(0,.8,.08)
 b_values = np.arange(1.6,6.6,.5)
 
 #create matrix to store results of each experiment
-results = np.zeros((len(beta_values),len(alpha_values)))
+results = np.zeros((len(b_values),len(a_values)))
 
 for i,b in enumerate(b_values):
 	for j,a in enumerate(a_values):
