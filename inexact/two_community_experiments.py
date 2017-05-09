@@ -8,7 +8,7 @@ import sys
 
 #n = 240
 k = 2
-m = 50
+m = 100
 n_iter = 15
 
 #create range of values to try
@@ -17,7 +17,7 @@ b_values = np.arange(0,.8,.08)
 a_values = np.arange(1.6,6.6,.5)
 
 #create matrix to store results of each experiment
-#results = np.zeros((len(beta_values),len(alpha_values)))
+results = np.zeros((len(beta_values),len(alpha_values)))
 
 for i,b in enumerate(b_values):
 	for j,a in enumerate(a_values):

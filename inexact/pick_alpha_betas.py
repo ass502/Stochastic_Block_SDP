@@ -1,16 +1,15 @@
 import numpy as np
 import math
 
-
 def test_bound(a,b,k):
 
 	if k==2:
 		return (a-b)**2 > 2(a+b) #KASTEN-STEIGEN BOUND
 	else:
-		return (a-b)**2/float(k(a+(k-1)b))
+		return (a-b)**2/float(k(a+(k-1)b)) > 1
 
-k = 3
-m = 50
+k = 2
+m = 100
 n = float(k*m)
 
 b_values = np.arange(0,.8,.08)
