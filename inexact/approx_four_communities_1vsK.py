@@ -254,8 +254,9 @@ def simulate(n_iters,m,k):
 
 def main():
 
-	#test_1vsK()
+	test_1vsK()
 
+	'''
 	start_time = time.time()
 	simulate(args.niter,args.vert_per_comm,args.num_comm)
 
@@ -265,7 +266,7 @@ def main():
 		params_file.write('k='+str(args.num_comm)+'\n')
 
 	print 'Time in minutes: ', (time.time()-start_time)/60.
-
+	'''
 if __name__=='__main__':
 	main()
 

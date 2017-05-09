@@ -55,7 +55,7 @@ def network_entropy(communities):
 	return weighted_entropies/float(network_size)
 
 
-def create_matrix_B(m,k,alpha=5,beta=1):
+def create_matrix_B(m,k,a,b):
 	
 	"""
 	m = number of vertices in each community
@@ -74,13 +74,8 @@ def create_matrix_B(m,k,alpha=5,beta=1):
 	n = m*k
 
 	#define draw probabilities for intercommunity and intracommunity edges
-	'''
-	p = alpha * math.log(m) / m
-	q = beta * math.log(m) / m
-	'''
-	p = alpha * math.log(n) / n 
-	q = beta * math.log(n) / n
-
+	p = a/float(n)
+	q = b/float(n)
 
 	#create true label of communities
 	g = []
@@ -157,8 +152,10 @@ def test_binary():
 	m = 10 #number of vertices in each community
 	k = 4 #number of communities
 	n = m*k #number of network vertices
+	a = 1
+	b = 2
 
-	B, g = create_matrix_B(m,k) #g is true community labels. B = 2A - (1-I) with A as random SBM graph
+	B, g = create_matrix_B(m,k,a,b) #g is true community labels. B = 2A - (1-I) with A as random SBM graph
 
 	temp_left_comm, temp_right_comm = solve_sdp(n,B,g) #first binary split on network nodes
 
@@ -189,7 +186,7 @@ def test_binary():
 	print 'Community 4: ', labels4
 
 
-def simulate(n_iters,m,k):
+def simulate(n_iters,m,k,a,b):
 
 	'''
 	m is number of vertices per community
@@ -207,7 +204,7 @@ def simulate(n_iters,m,k):
 		if it%100==0:
 			print 'iter ', it, '/', n_iters
 
-		B, g = create_matrix_B(m,k) #g is true community labels. B = 2A - (1-I) with A as random SBM graph
+		B, g = create_matrix_B(m,k,a,b) #g is true community labels. B = 2A - (1-I) with A as random SBM graph
 
 		temp_left_comm, temp_right_comm = solve_sdp(n,B,g) #first binary split on network nodes
 
@@ -249,10 +246,52 @@ def simulate(n_iters,m,k):
 	plt.savefig(args.outdir+args.plotfile)
 
 
+def run_iterations(n_iters,m,k,a,b):
+
+	'''store the average entropy over all iters'''
+	n = m*k #network size
+
+	entropy_sum = 0
+
+	for it in range(n_iters):
+
+		#if it%100==0:
+		#	print 'iter ', it, '/', n_iters
+
+		B, g = create_matrix_B(m,k,a,b) #g is true community labels. B = 2A - (1-I) with A as random SBM graph
+
+		temp_left_comm, temp_right_comm = solve_sdp(n,B,g) #first binary split on network nodes
+
+		#Now create another B matrix and g vector, corresponding to "left" side of binary tree
+		B_left, g_left = create_second_B_matrix(B, g, temp_left_comm)	
+
+		#And apply SDP to get first two communities (from left side of split tree)
+		comm1, comm2 = solve_sdp(len(temp_left_comm), B_left, g_left) 
+
+		#Now create another B matrix and g vector, corresponding to "left" side of binary tree
+		B_right, g_right = create_second_B_matrix(B, g, temp_right_comm)	
+
+		#And apply SDP to get first two communities (from left side of split tree)
+		comm3, comm4 = solve_sdp(len(temp_right_comm), B_right, g_right) 
+
+		labels1 = [ g_left[i] for i in comm1 ] #comm1 and comm2 indexes correspond to true labels in g_left
+		labels2 = [ g_left[i] for i in comm2 ] 
+		labels3 = [ g_right[i] for i in comm3 ] #comm3 and comm4 indexes correspond to true labels in g_right
+		labels4 = [ g_right[i] for i in comm4 ]
+
+		#Add current entropy
+		entropy_sum += network_entropy([labels1,labels2,labels3,labels4])
+	
+	#Return average entropy over all iterations
+	return entropy_sum/float(n_iters)
+
+
+
 def main():
 
-	#test_binary()
+	test_binary()
 
+	'''
 	start_time = time.time()
 	simulate(args.niter,args.vert_per_comm,args.num_comm)
 
@@ -262,7 +301,7 @@ def main():
 		params_file.write('k='+str(args.num_comm)+'\n')
 
 	print 'Time in minutes: ', (time.time()-start_time)/60.
-
+	'''
 
 if __name__=='__main__':
 	main()

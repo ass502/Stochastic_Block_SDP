@@ -67,7 +67,7 @@ def network_entropy(communities):
 	return weighted_entropies/float(network_size)
 
 
-def create_matrix_B(m,k,alpha=5,beta=1):
+def create_matrix_B(m,k,a,b):
 	
 	"""
 	m = number of vertices in each community
@@ -86,12 +86,8 @@ def create_matrix_B(m,k,alpha=5,beta=1):
 	n = m*k
 
 	#define draw probabilities for intercommunity and intracommunity edges
-	'''
-	p = alpha * math.log(m) / m
-	q = beta * math.log(m) / m
-	'''
-	p = alpha * math.log(n) / n 
-	q = beta * math.log(n) / n
+	p = a/float(n)
+	q = b/float(n)
 
 	#create true label of communities
 	g = []
@@ -200,7 +196,7 @@ def test_hierarchy():
 	print 'Community 3: ', labels_3
 
 
-def simulate(n_iters,m,k):
+def simulate(n_iters,m,k,a,b):
 
 	'''
 	m is number of vertices per community
@@ -218,7 +214,7 @@ def simulate(n_iters,m,k):
 		if it%100==0:
 			print 'iter ', it, '/', n_iters
 
-		B1, g1 = create_matrix_B(m,k) #g1 is true community labels. B1 = 2A - (1-I) with A as random SBM graph
+		B1, g1 = create_matrix_B(m,k,a,b) #g1 is true community labels. B1 = 2A - (1-I) with A as random SBM graph
 
 		temp_comm1, temp_comm2 = solve_sdp(n,B1,g1) 
 
@@ -262,10 +258,53 @@ def simulate(n_iters,m,k):
 	plt.savefig(args.outdir+args.plotfile)
 
 
+def run_iterations(n_iters,m,k,a,b):
+
+	'''store the average entropy over all iters'''
+	n = m*k #network size
+
+	entropy_sum = 0
+
+	for it in range(n_iters):
+
+		#if it%100==0:
+		#	print 'iter ', it, '/', n_iters
+
+		B1, g1 = create_matrix_B(m,k,a,b) #g1 is true community labels. B1 = 2A - (1-I) with A as random SBM graph
+
+		temp_comm1, temp_comm2 = solve_sdp(n,B1,g1) 
+
+		#Figure out the bigger community to split again. If equal size, pick first arbitrarily.
+		if len(temp_comm1) <= len(temp_comm2): 
+			comm_1 = temp_comm1
+			temp_comm = temp_comm2
+		else:
+			comm_1 = temp_comm2
+			temp_comm = temp_comm1
+
+		#Now create another B matrix and g vector
+		B2, g2 = create_second_B_matrix(B1, g1, temp_comm)	
+
+		#And apply SBM again
+		comm_2, comm_3 = solve_sdp(len(g2),B2,g2)
+
+		#Compute actual labels of communities
+		labels_1 = [ g1[i] for i in comm_1 ] #comm_1 indexes correspond to the true labels in g1
+		labels_2 = [ g2[i] for i in comm_2 ] #comm_2 and comm_3 indexes correspond to the true labels in g2
+		labels_3 = [ g2[i] for i in comm_3 ]
+
+		#Add current entropy
+		entropy_sum += network_entropy([labels_1, labels_2, labels_3])
+
+	#Return average entropy over all iterations
+	return entropy_sum/float(n_iters)
+
+
 def main():
 
-	#test_hierarchy()
+	test_hierarchy()
 
+	'''
 	start_time = time.time()
 	simulate(args.niter,args.vert_per_comm,args.num_comm)
 
@@ -275,7 +314,8 @@ def main():
 		params_file.write('k='+str(args.num_comm)+'\n')
 
 	print 'Time in minutes: ', (time.time()-start_time)/60.
-	
+	'''
+
 if __name__ == '__main__':
 	main()
 
