@@ -8,6 +8,7 @@ import scipy.sparse as sparse
 import matplotlib.pyplot as plt
 import pickle
 import time
+from scipy.sparse.linalg.eigen.arpack.arpack import ArpackNoConvergence
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--niter', type=int, default=10, help='Number of experiments.')
@@ -260,28 +261,37 @@ def run_iterations(n_iters,m,k,a,b):
 
 		B, g = create_matrix_B(m,k,a,b) #g is true community labels. B = 2A - (1-I) with A as random SBM graph
 
-		temp_left_comm, temp_right_comm = solve_sdp(n,B,g) #first binary split on network nodes
+		try:
 
-		#Now create another B matrix and g vector, corresponding to "left" side of binary tree
-		B_left, g_left = create_second_B_matrix(B, g, temp_left_comm)	
+			temp_left_comm, temp_right_comm = solve_sdp(n,B,g) #first binary split on network nodes
 
-		#And apply SDP to get first two communities (from left side of split tree)
-		comm1, comm2 = solve_sdp(len(temp_left_comm), B_left, g_left) 
+			#Now create another B matrix and g vector, corresponding to "left" side of binary tree
+			B_left, g_left = create_second_B_matrix(B, g, temp_left_comm)	
 
-		#Now create another B matrix and g vector, corresponding to "left" side of binary tree
-		B_right, g_right = create_second_B_matrix(B, g, temp_right_comm)	
+			#And apply SDP to get first two communities (from left side of split tree)
+			comm1, comm2 = solve_sdp(len(temp_left_comm), B_left, g_left) 
 
-		#And apply SDP to get first two communities (from left side of split tree)
-		comm3, comm4 = solve_sdp(len(temp_right_comm), B_right, g_right) 
+			#Now create another B matrix and g vector, corresponding to "left" side of binary tree
+			B_right, g_right = create_second_B_matrix(B, g, temp_right_comm)	
 
-		labels1 = [ g_left[i] for i in comm1 ] #comm1 and comm2 indexes correspond to true labels in g_left
-		labels2 = [ g_left[i] for i in comm2 ] 
-		labels3 = [ g_right[i] for i in comm3 ] #comm3 and comm4 indexes correspond to true labels in g_right
-		labels4 = [ g_right[i] for i in comm4 ]
+			#And apply SDP to get first two communities (from left side of split tree)
+			comm3, comm4 = solve_sdp(len(temp_right_comm), B_right, g_right) 
 
-		#Add current entropy
-		entropy_sum += network_entropy([labels1,labels2,labels3,labels4])
+			labels1 = [ g_left[i] for i in comm1 ] #comm1 and comm2 indexes correspond to true labels in g_left
+			labels2 = [ g_left[i] for i in comm2 ] 
+			labels3 = [ g_right[i] for i in comm3 ] #comm3 and comm4 indexes correspond to true labels in g_right
+			labels4 = [ g_right[i] for i in comm4 ]
+
+			#Add current entropy
+			entropy_sum += network_entropy([labels1,labels2,labels3,labels4])
 	
+		except ArpackNoConvergence:
+
+			'''If the SDP method doesn't work, randomly assign nodes to k=4 communities of size m'''
+
+			labels1, labels2, labels3, labels4 = np.split(np.random.permutation(g),k)
+			entropy_sum += network_entropy([list(labels1),list(labels2),list(labels3),list(labels4)])
+
 	#Return average entropy over all iterations
 	return entropy_sum/float(n_iters)
 

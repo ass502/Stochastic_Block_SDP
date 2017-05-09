@@ -20,6 +20,7 @@ import scipy.sparse as sparse
 import matplotlib.pyplot as plt
 import pickle
 import time
+from scipy.sparse.linalg.eigen.arpack.arpack import ArpackNoConvergence
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--niter', type=int, default=100000, help='Number of experiments.')
@@ -272,29 +273,38 @@ def run_iterations(n_iters,m,k,a,b):
 
 		B1, g1 = create_matrix_B(m,k,a,b) #g1 is true community labels. B1 = 2A - (1-I) with A as random SBM graph
 
-		temp_comm1, temp_comm2 = solve_sdp(n,B1,g1) 
+		try:
 
-		#Figure out the bigger community to split again. If equal size, pick first arbitrarily.
-		if len(temp_comm1) <= len(temp_comm2): 
-			comm_1 = temp_comm1
-			temp_comm = temp_comm2
-		else:
-			comm_1 = temp_comm2
-			temp_comm = temp_comm1
+			temp_comm1, temp_comm2 = solve_sdp(n,B1,g1) 
 
-		#Now create another B matrix and g vector
-		B2, g2 = create_second_B_matrix(B1, g1, temp_comm)	
+			#Figure out the bigger community to split again. If equal size, pick first arbitrarily.
+			if len(temp_comm1) <= len(temp_comm2): 
+				comm_1 = temp_comm1
+				temp_comm = temp_comm2
+			else:
+				comm_1 = temp_comm2
+				temp_comm = temp_comm1
 
-		#And apply SBM again
-		comm_2, comm_3 = solve_sdp(len(g2),B2,g2)
+			#Now create another B matrix and g vector
+			B2, g2 = create_second_B_matrix(B1, g1, temp_comm)	
 
-		#Compute actual labels of communities
-		labels_1 = [ g1[i] for i in comm_1 ] #comm_1 indexes correspond to the true labels in g1
-		labels_2 = [ g2[i] for i in comm_2 ] #comm_2 and comm_3 indexes correspond to the true labels in g2
-		labels_3 = [ g2[i] for i in comm_3 ]
+			#And apply SBM again
+			comm_2, comm_3 = solve_sdp(len(g2),B2,g2)
 
-		#Add current entropy
-		entropy_sum += network_entropy([labels_1, labels_2, labels_3])
+			#Compute actual labels of communities
+			labels_1 = [ g1[i] for i in comm_1 ] #comm_1 indexes correspond to the true labels in g1
+			labels_2 = [ g2[i] for i in comm_2 ] #comm_2 and comm_3 indexes correspond to the true labels in g2
+			labels_3 = [ g2[i] for i in comm_3 ]
+
+			#Add current entropy
+			entropy_sum += network_entropy([labels_1, labels_2, labels_3])
+
+		except ArpackNoConvergence:
+			
+			'''If the SDP method doesn't work, randomly assign nodes to k=3 communities of size m'''
+
+			labels1, labels2, labels3 = np.split(np.random.permutation(g1),k)
+			entropy_sum += network_entropy([list(labels1),list(labels2),list(labels3)])
 
 	#Return average entropy over all iterations
 	return entropy_sum/float(n_iters)

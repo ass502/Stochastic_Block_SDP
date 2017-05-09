@@ -13,8 +13,8 @@ n_iter = 15
 
 #create range of values to try
 #generally use small values, with alpha > beta
-b_values = np.arange(0,.8,.08)
-a_values = np.arange(1.6,6.6,.5)
+b_values = np.arange(0.1,.9,.08)
+a_values = np.arange(3.7,6.7,.3)
 
 #create matrix to store results of each experiment
 results = np.zeros((len(b_values),len(a_values)))
@@ -37,15 +37,15 @@ pickle.dump(results, open( "experiment_output/four_communities_"+str(m)+"_verts.
 imgplot = plt.imshow(results,cmap='gray')
 axes = plt.gca()
 
-axes.set_ylabel('beta')
-axes.set_xlabel('alpha')
+axes.set_ylabel('b')
+axes.set_xlabel('a')
 axes.set_title('Four community results for '+str(m)+' vertices')
 
 #create labels for x and y axis
-axes.yaxis.set_ticks(beta_values)
-axes.xaxis.set_ticks(alpha_values)
-axes.set_yticklabels(beta_values,ha='center')
-axes.set_xticklabels(alpha_values,ha='center')
+axes.yaxis.set_ticks(b_values)
+axes.xaxis.set_ticks(a_values)
+axes.set_yticklabels(b_values,ha='center')
+axes.set_xticklabels(a_values,ha='center')
 
 #draw boundary curve for sqrt(alpha) - sqrt(beta) = sqrt(k)
 x_vals = np.arange(np.sqrt(2),5.7,0.1)
