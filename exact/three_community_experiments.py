@@ -29,23 +29,21 @@ for i,beta in enumerate(beta_values):
 
 pickle.dump(results, open( "experiment_output/three_communities_50_verts.p", "wb" ))
 
-imgplot = plt.imshow(results,cmap='gray')
+imgplot = plt.imshow(results,cmap='gray', extent=[1.35,6.35,.76,-.04], aspect="auto")
 axes = plt.gca()
 
 axes.set_ylabel('beta')
 axes.set_xlabel('alpha')
-axes.set_title('Three community results for '+str(m)+' vertices')
+axes.set_title('Three community results for '+str(n)+' vertices')
 
-#create labels for x and y axis
 axes.yaxis.set_ticks(beta_values)
 axes.xaxis.set_ticks(alpha_values)
-axes.set_yticklabels(beta_values,ha='center')
+axes.set_yticklabels(beta_values)
 axes.set_xticklabels(alpha_values,ha='center')
 
-#draw boundary curve for sqrt(alpha) - sqrt(beta) = sqrt(k)
-x_vals = np.arange(np.sqrt(2),5.7,0.1)
-y_vals = np.power((np.sqrt(x_vals) - np.sqrt(2)),2)
+x_vals = np.arange(3.1,7.1,.5)
+y_vals = np.power(np.sqrt(x_vals) - np.sqrt(k),2)
 axes.autoscale(False)
 axes.plot(x_vals,y_vals,"r-")
 
-plt.savefig('experiment_output/three_communities_50_verts.png')
+plt.savefig('experiment_output/three_communities_150_verts.png')

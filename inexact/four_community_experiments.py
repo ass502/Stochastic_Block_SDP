@@ -8,7 +8,7 @@ import sys
 
 #n = 240
 k = 4
-m = 50
+m = 40
 n_iter = 15
 
 #create range of values to try
