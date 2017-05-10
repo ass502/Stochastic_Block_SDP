@@ -8,12 +8,12 @@ def test_bound(a,b,k):
 	else:
 		return (a-b)**2/float(k*(a+(k-1)*b)) > 1
 
-k = 2
-m = 100
+k = 4
+m = 40
 n = float(k*m)
 
 b_values = np.arange(0,.8,.08)
-a_values = np.arange(1.6,6.6,.5)
+a_values = np.arange(3.3,6.3,.3)
 
 counter = 0.
 for b in b_values:

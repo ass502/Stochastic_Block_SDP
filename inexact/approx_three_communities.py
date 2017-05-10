@@ -266,6 +266,8 @@ def run_iterations(n_iters,m,k,a,b):
 
 	entropy_sum = 0
 
+	errors = 0
+
 	for it in range(n_iters):
 
 		#if it%100==0:
@@ -305,7 +307,10 @@ def run_iterations(n_iters,m,k,a,b):
 
 			labels1, labels2, labels3 = np.split(np.random.permutation(g1),k)
 			entropy_sum += network_entropy([list(labels1),list(labels2),list(labels3)])
+			errors += 1
 
+	if errors > 0:
+		print 'Errors: ',a,b,errors		
 	#Return average entropy over all iterations
 	return entropy_sum/float(n_iters)
 
