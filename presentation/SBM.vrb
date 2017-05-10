@@ -1,0 +1,19 @@
+\frametitle{What does $\phi(x_t)$ look like?}
+\begin{itemize}
+\item{Use a one-hot encoding to transform $x_t$ to a vector in $\mathbb{R^{|V|}} \Longrightarrow \tilde{x_t} $ }
+
+\item{Then define $\phi(x_t) = E \tilde{x_t}$}
+\begin{itemize}
+\item{$E \in \mathbb{R}^{d \times |V|}$}
+\end{itemize}
+\item{Tune choice of E and skip feature engineering!}
+\end{itemize}
+
+\begin{figure}
+  \centering
+ \includegraphics[width=8cm,height=4cm]{word_embedding.jpg}
+
+\end{figure}
+\tiny
+Source: Sam Bowman, NYU
+\normalsize
