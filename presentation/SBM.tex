@@ -27,7 +27,7 @@
 \begin{itemize}
 \item{Let $G$ be a graph with $k$ communities of $m$ nodes each}
 \item{For nodes $(i,j)$ in the same community, let the $p$ be the probability that they share an edge on $G$}
-\item{For nodes $(i,j)$ not in the same community, let the $q$ be the probability that they \textit{don't} share an edge on $G$}
+\item{For nodes $(i,j)$ \textit{not} in the same community, let the $q$ be the probability that they share an edge on $G$}
 \item{Edges are drawn independently, and $p>q$}
 \item{Goal: recover the original partition}
 \end{itemize}
@@ -43,7 +43,7 @@ $$\sum_j x_j = 0$$
 
 \begin{frame}
 \frametitle{The Semidefinite Program for $k=2$}
-Let $B = 2A - (\textbf{1}\textbf{1}^T - I)$. Then the original problem is equivalent to
+Let $B = 2A - (\textbf{1}\textbf{1}^T - \I)$. Then the original problem is equivalent to
 $$\max \sum_{i,j} B_{ij} x_{i} x_{j} $$
 $$ \text{s.t. } x_i = \pm 1 \ \forall i$$
 $$\sum_j x_j = 0$$
@@ -55,7 +55,7 @@ By dropping the constraint $\sum_j x_j = 0$ and with a convex relaxation, we hav
 $$\max Tr(BX)$$
 $$ \text{s.t. } X_{ii}= 1 \ \forall i$$
 $$X \succeq 0$$
-Under the right conditions, with high probability the solution coincides with $X=gg^{T}$. We obtain $g$ by finding the leading eigenvector of $X$.
+Under the right conditions, with high probability the solution coincides with $X=gg^{T}$ where $g$ is the true partition. We obtain $g$ by finding the leading eigenvector of $X$.
 \end{frame}
 
 \begin{frame}
